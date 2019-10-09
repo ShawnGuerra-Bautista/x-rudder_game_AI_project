@@ -40,6 +40,16 @@ def true_column_position(board_column):
     return true_column
 
 
+'''
+    Quadrant 1
+        [ ][ ][X][ ][X]
+        [ ][ ][ ][X][ ]
+        [ ][ ]['X'][ ][X]
+        [ ][ ][ ][ ][ ]
+        [ ][ ][ ][ ][ ]
+'''
+
+
 def check_quadrant_1(board_game, board_row, board_column, token, opposing_token):
     if board_row - 2 < 0 or board_column + 2 > 12:
         return False
@@ -51,6 +61,16 @@ def check_quadrant_1(board_game, board_row, board_column, token, opposing_token)
                and board_game[board_row - 2][board_column + 2] == token \
                and board_game[board_row - 1][board_column] != opposing_token \
                and board_game[board_row - 1][board_column + 2] != opposing_token
+
+
+'''
+    Quadrant 2
+        [X][ ][X][ ][ ]
+        [ ][X][ ][ ][ ]
+        [X][ ]['X'][ ][ ]
+        [ ][ ][ ][ ][ ]
+        [ ][ ][ ][ ][ ]
+'''
 
 
 def check_quadrant_2(board_game, board_row, board_column, token, opposing_token):
@@ -66,6 +86,16 @@ def check_quadrant_2(board_game, board_row, board_column, token, opposing_token)
                and board_game[board_row - 1][board_column - 2] != opposing_token
 
 
+'''
+    Quadrant 3
+        [ ][ ][ ][ ][ ]
+        [ ][ ][ ][ ][ ]
+        [X][ ]['X'][ ][ ]
+        [ ][X][ ][ ][ ]
+        [X][ ][X][ ][ ]
+'''
+
+
 def check_quadrant_3(board_game, board_row, board_column, token, opposing_token):
     if board_row + 2 > 9 or board_column - 2 < 1:
         return False
@@ -79,6 +109,16 @@ def check_quadrant_3(board_game, board_row, board_column, token, opposing_token)
                and board_game[board_row + 1][board_column - 2] != opposing_token
 
 
+'''
+    Quadrant 4
+        [ ][ ][ ][ ][ ]
+        [ ][ ][ ][ ][ ]
+        [ ][ ]['X'][ ][X]
+        [ ][ ][ ][X][ ]
+        [ ][ ][X][ ][X]
+'''
+
+
 def check_quadrant_4(board_game, board_row, board_column, token, opposing_token):
     if board_row + 2 > 9 or board_column + 2 > 12:
         return False
@@ -90,6 +130,16 @@ def check_quadrant_4(board_game, board_row, board_column, token, opposing_token)
                and board_game[board_row + 2][board_column + 2] == token \
                and board_game[board_row + 1][board_column] != opposing_token \
                and board_game[board_row + 1][board_column + 2] != opposing_token
+
+
+'''
+    Quadrant 4
+        [ ][ ][ ][ ][ ]
+        [ ][X][ ][X][ ]
+        [ ][ ]['X'][ ][ ]
+        [ ][X][ ][X][ ]
+        [ ][ ][ ][ ][ ]
+'''
 
 
 # 'quadrant 5' refers to the 'center' where the token is placed
