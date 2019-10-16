@@ -6,6 +6,11 @@ def placing_token(board_game, board_token, board_row, board_column):
     return
 
 
+def remove_token(board_game, board_row, board_column):
+    board_game[board_row, board_column] = ' '
+    return
+
+
 def true_row_position(board_row):
     return (10 - board_row) % 10
 
@@ -59,8 +64,8 @@ def check_quadrant_1(board_game, board_row, board_column, token, opposing_token)
                and board_game[board_row - 2][board_column] == token \
                and board_game[board_row - 1][board_column + 1] == token \
                and board_game[board_row - 2][board_column + 2] == token \
-               and board_game[board_row - 1][board_column] != opposing_token \
-               and board_game[board_row - 1][board_column + 2] != opposing_token
+               and (board_game[board_row - 1][board_column] != opposing_token
+                    or board_game[board_row - 1][board_column + 2] != opposing_token)
 
 
 '''
@@ -82,8 +87,8 @@ def check_quadrant_2(board_game, board_row, board_column, token, opposing_token)
                and board_game[board_row - 2][board_column] == token \
                and board_game[board_row - 1][board_column - 1] == token \
                and board_game[board_row - 2][board_column - 2] == token \
-               and board_game[board_row - 1][board_column] != opposing_token \
-               and board_game[board_row - 1][board_column - 2] != opposing_token
+               and (board_game[board_row - 1][board_column] != opposing_token
+                    or board_game[board_row - 1][board_column - 2] != opposing_token)
 
 
 '''
@@ -105,8 +110,8 @@ def check_quadrant_3(board_game, board_row, board_column, token, opposing_token)
                and board_game[board_row + 2][board_column] == token \
                and board_game[board_row + 1][board_column - 1] == token \
                and board_game[board_row + 2][board_column - 2] == token \
-               and board_game[board_row + 1][board_column] != opposing_token \
-               and board_game[board_row + 1][board_column - 2] != opposing_token
+               and (board_game[board_row + 1][board_column] != opposing_token
+                    or board_game[board_row + 1][board_column - 2] != opposing_token)
 
 
 '''
@@ -128,12 +133,12 @@ def check_quadrant_4(board_game, board_row, board_column, token, opposing_token)
                and board_game[board_row + 2][board_column] == token \
                and board_game[board_row + 1][board_column + 1] == token \
                and board_game[board_row + 2][board_column + 2] == token \
-               and board_game[board_row + 1][board_column] != opposing_token \
-               and board_game[board_row + 1][board_column + 2] != opposing_token
+               and (board_game[board_row + 1][board_column] != opposing_token
+                    or board_game[board_row + 1][board_column + 2] != opposing_token)
 
 
 '''
-    Quadrant 4
+    Quadrant 5
         [ ][ ][ ][ ][ ]
         [ ][X][ ][X][ ]
         [ ][ ]['X'][ ][ ]
@@ -152,8 +157,8 @@ def check_quadrant_5(board_game, board_row, board_column, token, opposing_token)
                and board_game[board_row - 1][board_column - 1] == token \
                and board_game[board_row + 1][board_column - 1] == token \
                and board_game[board_row + 1][board_column + 1] == token \
-               and board_game[board_row][board_column + 1] != opposing_token \
-               and board_game[board_row][board_column - 1] != opposing_token
+               and (board_game[board_row][board_column + 1] != opposing_token
+                    or board_game[board_row][board_column - 1] != opposing_token)
 
 
 def is_player_1_winner(board_game, board_row, board_column):
@@ -178,6 +183,7 @@ def is_player_2_winner(board_game, board_row, board_column):
 player_1_tokens = 15  # Denoted by an X
 player_2_tokens = 15  # Denoted by an O
 player_1_turn = True
+total_moves = 30
 winner = 'NONE'
 
 # The board's row number are upside down in this program so use mod 10
@@ -198,7 +204,7 @@ board = np.array(board_body)
 print(board)
 
 # Emulates a do-while loop
-while player_1_tokens != 0 or player_2_tokens != 0:
+while player_1_tokens != 0 or player_2_tokens != 0 or total_moves != 0:
     if player_1_turn:
         print()
         print('===============================')
@@ -207,14 +213,61 @@ while player_1_tokens != 0 or player_2_tokens != 0:
         print('========TOKEN REMAINING========')
         print('============= ' + str(player_1_tokens) + ' ==============')
         print('===============================')
+        print('========MOVES REMAINING========')
+        print('============= ' + str(total_moves) + ' ==============')
+        print('===============================')
         print()
+
         position = input('Choose a position: ')
         row = true_row_position(int(position[1:3]))
         column = true_column_position(position[0].lower())
-        while board[row, column] != ' ':
-            position = input('Choose another position: ')
+
+        old_row = -1
+        old_column = -1
+
+        if player_1_tokens != 0:
+            while board[row, column] == 'O':
+                position = input('Choose another position: ')
+                row = true_row_position(int(position[1:3]))
+                column = true_column_position(position[0].lower())
+
+            if board[row, column] == 'X':
+                old_row = row
+                old_column = column
+                remove_token(board, row, column)
+
+                position = input('Choose the position you want to move the token: ')
+                row = true_row_position(int(position[1:3]))
+                column = true_column_position(position[0].lower())
+
+                while board[row, column] != ' ':
+                    position = input('Choose another position: ')
+                    row = true_row_position(int(position[1:3]))
+                    column = true_column_position(position[0].lower())
+                total_moves -= 1
+
+            else:
+                player_1_tokens -= 1
+        else:
+            while board[row, column] != 'X':
+                position = input('Choose one of your token to move: ')
+                row = true_row_position(int(position[1:3]))
+                column = true_column_position(position[0].lower())
+
+            old_row = row
+            old_column = column
+            remove_token(board, row, column)
+
+            position = input('Choose the position you want to move the token: ')
             row = true_row_position(int(position[1:3]))
             column = true_column_position(position[0].lower())
+
+            while board[row, column] != ' ':
+                position = input('Choose another position: ')
+                row = true_row_position(int(position[1:3]))
+                column = true_column_position(position[0].lower())
+            total_moves -= 1
+
         placing_token(board, 'X', row, column)
 
         print()
@@ -224,8 +277,18 @@ while player_1_tokens != 0 or player_2_tokens != 0:
             winner = 'Player 1'
             break
 
-        player_1_tokens -= 1
+        if old_row - 1 >= 0 and board[old_row - 1, old_column] == 'O' \
+                and is_player_2_winner(board, old_row - 1, old_column):
+            winner = 'Player 2'
+            break
+
+        if old_row + 1 <= 9 and board[old_row + 1, old_column] == 'O' \
+                and is_player_2_winner(board, old_row + 1, old_column):
+            winner = 'Player 2'
+            break
+
         player_1_turn = False
+
     else:
         print()
         print('===============================')
@@ -234,14 +297,62 @@ while player_1_tokens != 0 or player_2_tokens != 0:
         print('========TOKEN REMAINING========')
         print('============= ' + str(player_2_tokens) + ' ==============')
         print('===============================')
+        print('========MOVES REMAINING========')
+        print('============= ' + str(total_moves) + ' ==============')
+        print('===============================')
+
         print()
+
         position = input('Choose a position: ')
         row = true_row_position(int(position[1:3]))
         column = true_column_position(position[0].lower())
-        while board[row, column] != ' ':
-            position = input('Choose another position: ')
+
+        old_row = -1
+        old_column = -1
+
+        if player_2_tokens != 0:
+            while board[row, column] == 'X':
+                position = input('Choose another position: ')
+                row = true_row_position(int(position[1:3]))
+                column = true_column_position(position[0].lower())
+
+            if board[row, column] == 'O':
+                old_row = row
+                old_column = column
+                remove_token(board, row, column)
+
+                position = input('Choose the position you want to move the token: ')
+                row = true_row_position(int(position[1:3]))
+                column = true_column_position(position[0].lower())
+
+                while board[row, column] != ' ':
+                    position = input('Choose another position: ')
+                    row = true_row_position(int(position[1:3]))
+                    column = true_column_position(position[0].lower())
+                total_moves -= 1
+
+            else:
+                player_2_tokens -= 1
+        else:
+            while board[row, column] != 'O':
+                position = input('Choose another position: ')
+                row = true_row_position(int(position[1:3]))
+                column = true_column_position(position[0].lower())
+
+            old_row = row
+            old_column = column
+            remove_token(board, row, column)
+
+            position = input('Choose the position you want to move the token: ')
             row = true_row_position(int(position[1:3]))
             column = true_column_position(position[0].lower())
+
+            while board[row, column] != ' ':
+                position = input('Choose another position: ')
+                row = true_row_position(int(position[1:3]))
+                column = true_column_position(position[0].lower())
+            total_moves -= 1
+
         placing_token(board, 'O', row, column)
 
         print()
@@ -251,7 +362,16 @@ while player_1_tokens != 0 or player_2_tokens != 0:
             winner = 'Player 2'
             break
 
-        player_2_tokens -= 1
+        if old_row - 1 >= 0 and board[old_row - 1, old_column] == 'X' \
+                and is_player_1_winner(board, old_row - 1, old_column):
+            winner = 'Player 1'
+            break
+
+        if old_row + 1 <= 9 and board[old_row + 1, old_column] == 'X' \
+                and is_player_1_winner(board, old_row + 1, old_column):
+            winner = 'Player 1'
+            break
+
         player_1_turn = True
 
 print()
