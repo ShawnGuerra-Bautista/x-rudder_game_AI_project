@@ -12,7 +12,7 @@ def remove_token(board_game, board_row, board_column):
 
 
 def true_row_position(board_row):
-    return (10 - board_row) % 10
+    return 10 - board_row
 
 
 def true_column_position(board_column):
@@ -161,6 +161,13 @@ def check_quadrant_5(board_game, board_row, board_column, token, opposing_token)
                     or board_game[board_row][board_column - 1] != opposing_token)
 
 
+def is_move_possible(board_game, board_row, board_column, old_board_row, old_board_column):
+    return old_board_row + 1 >= board_row >= old_board_row - 1 \
+            and old_board_column + 1 >= board_column >= old_board_column - 1 \
+            and 9 >= board_row >= 0 and 12 >= board_column >= 1 \
+            and board_game[board_row][board_column] == ' '
+
+
 def is_player_1_winner(board_game, board_row, board_column):
     return check_quadrant_1(board_game, board_row, board_column, 'X', 'O') \
            or check_quadrant_2(board_game, board_row, board_column, 'X', 'O') \
@@ -218,16 +225,17 @@ while player_1_tokens != 0 or player_2_tokens != 0 or total_moves != 0:
         print('===============================')
         print()
 
-        position = input('Choose a position: ')
+        position = input('Choose a position to move/place a token: ')
         row = true_row_position(int(position[1:3]))
         column = true_column_position(position[0].lower())
+        is_move_valid = True
 
         old_row = -1
         old_column = -1
 
         if player_1_tokens != 0:
             while board[row, column] == 'O':
-                position = input('Choose another position: ')
+                position = input('Choose another position to move/place the token: ')
                 row = true_row_position(int(position[1:3]))
                 column = true_column_position(position[0].lower())
 
@@ -240,8 +248,8 @@ while player_1_tokens != 0 or player_2_tokens != 0 or total_moves != 0:
                 row = true_row_position(int(position[1:3]))
                 column = true_column_position(position[0].lower())
 
-                while board[row, column] != ' ':
-                    position = input('Choose another position: ')
+                while not is_move_possible(board, row, column, old_row, old_column):
+                    position = input('Choose another position to move the token: ')
                     row = true_row_position(int(position[1:3]))
                     column = true_column_position(position[0].lower())
                 total_moves -= 1
@@ -250,7 +258,7 @@ while player_1_tokens != 0 or player_2_tokens != 0 or total_moves != 0:
                 player_1_tokens -= 1
         else:
             while board[row, column] != 'X':
-                position = input('Choose one of your token to move: ')
+                position = input('Choose one of your tokens to move: ')
                 row = true_row_position(int(position[1:3]))
                 column = true_column_position(position[0].lower())
 
@@ -262,8 +270,8 @@ while player_1_tokens != 0 or player_2_tokens != 0 or total_moves != 0:
             row = true_row_position(int(position[1:3]))
             column = true_column_position(position[0].lower())
 
-            while board[row, column] != ' ':
-                position = input('Choose another position: ')
+            while not is_move_possible(board, row, column, old_row, old_column):
+                position = input('Choose another position to move: ')
                 row = true_row_position(int(position[1:3]))
                 column = true_column_position(position[0].lower())
             total_moves -= 1
@@ -303,7 +311,7 @@ while player_1_tokens != 0 or player_2_tokens != 0 or total_moves != 0:
 
         print()
 
-        position = input('Choose a position: ')
+        position = input('Choose a position to move/place a token: ')
         row = true_row_position(int(position[1:3]))
         column = true_column_position(position[0].lower())
 
@@ -312,7 +320,7 @@ while player_1_tokens != 0 or player_2_tokens != 0 or total_moves != 0:
 
         if player_2_tokens != 0:
             while board[row, column] == 'X':
-                position = input('Choose another position: ')
+                position = input('Choose another position to move/place the token: ')
                 row = true_row_position(int(position[1:3]))
                 column = true_column_position(position[0].lower())
 
@@ -325,8 +333,8 @@ while player_1_tokens != 0 or player_2_tokens != 0 or total_moves != 0:
                 row = true_row_position(int(position[1:3]))
                 column = true_column_position(position[0].lower())
 
-                while board[row, column] != ' ':
-                    position = input('Choose another position: ')
+                while not is_move_possible(board, row, column, old_row, old_column):
+                    position = input('Choose another position to move the token: ')
                     row = true_row_position(int(position[1:3]))
                     column = true_column_position(position[0].lower())
                 total_moves -= 1
@@ -335,7 +343,7 @@ while player_1_tokens != 0 or player_2_tokens != 0 or total_moves != 0:
                 player_2_tokens -= 1
         else:
             while board[row, column] != 'O':
-                position = input('Choose another position: ')
+                position = input('Choose one of your tokens to move: ')
                 row = true_row_position(int(position[1:3]))
                 column = true_column_position(position[0].lower())
 
@@ -347,8 +355,8 @@ while player_1_tokens != 0 or player_2_tokens != 0 or total_moves != 0:
             row = true_row_position(int(position[1:3]))
             column = true_column_position(position[0].lower())
 
-            while board[row, column] != ' ':
-                position = input('Choose another position: ')
+            while not is_move_possible(board, row, column, old_row, old_column):
+                position = input('Choose another position to move the token: ')
                 row = true_row_position(int(position[1:3]))
                 column = true_column_position(position[0].lower())
             total_moves -= 1
