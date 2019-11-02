@@ -1,5 +1,31 @@
 import numpy as np
 
+# Variables
+player_1_tokens = 15  # Denoted by an X
+player_1_token = 'X'
+player_2_tokens = 15  # Denoted by an O
+player_2_token = 'O'
+is_player_1_turn = True
+total_moves = 30
+winner = None
+
+# The board's row number are upside down in this program so use mod 10
+board_body = [['10', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+              ['9', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+              ['8', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+              ['7', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+              ['6', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+              ['5', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+              ['4', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+              ['3', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+              ['2', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+              ['1', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+              [' ', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L']]
+
+# Prints in array format
+board = np.array(board_body)
+
+
 def placing_token(board_game, board_token, board_row, board_column):
     board_game[board_row, board_column] = board_token
     return
@@ -167,6 +193,10 @@ def is_move_possible(board_game, board_row, board_column, old_board_row, old_boa
            and board_game[board_row][board_column] == ' '
 
 
+def is_placement_possible(board_row, board_column):
+    return 9 >= board_row >= 0 and 12 >= board_column >= 1
+
+
 def is_player_winner(board_game, board_row, board_column, player_token, opposing_player_token):
     return check_quadrant_1(board_game, board_row, board_column, player_token, opposing_player_token) \
            or check_quadrant_2(board_game, board_row, board_column, player_token, opposing_player_token) \
@@ -193,18 +223,24 @@ def winner_evaluation(board_game, board_row, board_column, board_old_row, board_
     return evaluated_winner
 
 
-def turn_of_player(board_game, player_token, opposing_player_token,
-                   is_turn_of_player_one, current_player_tokens, current_total_moves):
+def turn_of_player(board_game, player_token, opposing_player_token):
+    global is_player_1_turn
+    global total_moves
+    global player_1_tokens
+    global player_2_tokens
+    global winner
+
     print('===============================')
-    print('===========' + 'Player 1' if is_turn_of_player_one else 'Player 2' + '============')
+    print('===========' + ('Player 1' if is_player_1_turn else 'Player 2') + '============')
     print('===============================')
     print('========TOKEN REMAINING========')
-    print('============= ' + str(current_player_tokens) + ' ==============')
+    print('============= ' + str(player_1_tokens if is_player_1_turn else player_2_tokens) + ' ==============')
     print('===============================')
     print('========MOVES REMAINING========')
-    print('============= ' + str(current_total_moves) + ' ==============')
+    print('============= ' + str(total_moves) + ' ==============')
     print('===============================')
     print()
+    print(board_game)
 
     position = input('Choose a position to move/place a token: ')
     row = true_row_position(int(position[1:3]))
@@ -213,8 +249,8 @@ def turn_of_player(board_game, player_token, opposing_player_token,
     old_row = -1
     old_column = -1
 
-    if current_player_tokens != 0:
-        while board_game[row, column] == opposing_player_token:
+    if (player_1_tokens if is_player_1_turn else player_2_tokens) != 0:
+        while board_game[row, column] == opposing_player_token or not is_placement_possible(row, column):
             position = input('Choose another position to move/place the token: ')
             row = true_row_position(int(position[1:3]))
             column = true_column_position(position[0].lower())
@@ -232,10 +268,13 @@ def turn_of_player(board_game, player_token, opposing_player_token,
                 position = input('Choose another position to move the token: ')
                 row = true_row_position(int(position[1:3]))
                 column = true_column_position(position[0].lower())
-            current_total_moves -= 1
+            total_moves -= 1
 
         else:
-            current_player_tokens -= 1
+            if is_player_1_turn:
+                player_1_tokens -= 1
+            else:
+                player_2_tokens -= 1
     else:
         while board_game[row, column] != player_token:
             position = input('Choose one of your tokens to move: ')
@@ -254,51 +293,22 @@ def turn_of_player(board_game, player_token, opposing_player_token,
             position = input('Choose another position to move: ')
             row = true_row_position(int(position[1:3]))
             column = true_column_position(position[0].lower())
-        current_total_moves -= 1
+        total_moves -= 1
 
     placing_token(board_game, player_token, row, column)
 
-    this_round_winner = winner_evaluation(board_game, row, column, old_row, old_column, is_turn_of_player_one)
+    winner = winner_evaluation(board_game, row, column, old_row, old_column, is_player_1_turn)
 
-    print()
-    print(board_game)
-    print()
-
-    return this_round_winner
+    return winner
 
 
 # ==========================================GAME============================================
-# Variables
-
-player_1_tokens = 15  # Denoted by an X
-player_2_tokens = 15  # Denoted by an O
-player_1_turn = True
-total_moves = 30
-winner = None
-
-# The board's row number are upside down in this program so use mod 10
-board_body = [['10', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-              ['9', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-              ['8', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-              ['7', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-              ['6', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-              ['5', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-              ['4', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-              ['3', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-              ['2', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-              ['1', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-              [' ', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L']]
-
-# Prints in array format
-board = np.array(board_body)
-print(board)
-
 # Emulates a do-while loop
-while player_1_tokens != 0 or player_2_tokens != 0 or total_moves != 0:
-    if turn_of_player(board, 'X', 'O', player_1_turn, player_1_tokens, total_moves) is not None:
-        break
 
-    if turn_of_player(board, 'O', 'X', not player_1_turn, player_2_tokens, total_moves) is not None:
+while player_1_tokens != 0 or player_2_tokens != 0 or total_moves != 0:
+    if turn_of_player(board, player_1_token, player_2_token) is not None:
+        break
+    if turn_of_player(board, player_2_token, player_1_token) is not None:
         break
 
 if winner is not None:
