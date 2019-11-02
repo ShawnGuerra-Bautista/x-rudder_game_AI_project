@@ -1,9 +1,9 @@
 import numpy as np
 
 # Variables
-player_1_tokens = 5  # Denoted by an X
+player_1_tokens = 15  # Denoted by an X
 player_1_token = 'X'
-player_2_tokens = 5  # Denoted by an O
+player_2_tokens = 15  # Denoted by an O
 player_2_token = 'O'
 is_player_1_turn = True
 total_moves = 30
