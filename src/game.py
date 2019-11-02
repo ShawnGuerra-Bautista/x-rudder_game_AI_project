@@ -1,9 +1,9 @@
 import numpy as np
 
 # Variables
-player_1_tokens = 15  # Denoted by an X
+player_1_tokens = 5  # Denoted by an X
 player_1_token = 'X'
-player_2_tokens = 15  # Denoted by an O
+player_2_tokens = 5  # Denoted by an O
 player_2_token = 'O'
 is_player_1_turn = True
 total_moves = 30
@@ -306,8 +306,10 @@ def turn_of_player(board_game, player_token, opposing_player_token):
 # Emulates a do-while loop
 
 while player_1_tokens != 0 or player_2_tokens != 0 or total_moves != 0:
+    is_player_1_turn = True
     if turn_of_player(board, player_1_token, player_2_token) is not None:
         break
+    is_player_1_turn = False
     if turn_of_player(board, player_2_token, player_1_token) is not None:
         break
 
