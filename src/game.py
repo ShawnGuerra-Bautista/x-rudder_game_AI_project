@@ -1,10 +1,14 @@
+import math
+
 import numpy as np
+
 # ==========================================GAME VARIABLE============================================
 # Variables
 player_1_tokens = 15  # Denoted by an X
-PLAYER_1_TOKEN = 'X'
+PLAYER_1_TOKEN = 'X'  # Represents Max Player
 player_2_tokens = 15  # Denoted by an O
-PLAYER_2_TOKEN = 'O'
+PLAYER_2_TOKEN = 'O'  # Represents Min Player
+
 is_player_1_turn = True
 total_moves = 30
 winner = None
@@ -24,6 +28,8 @@ board_body = [['10', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']
 
 # Prints in array format
 board = np.array(board_body)
+
+
 # ==========================================HELPER============================================
 
 
@@ -222,89 +228,198 @@ def winner_evaluation(board_game, board_row, board_column, board_old_row, board_
         evaluated_winner = 'Player 2' if is_turn_of_player_one else 'Player 1'
 
     return evaluated_winner
+
+
 # ===========================================AI=============================================
 
+# For optimization, but will think about it later
+player_1_history_tokens = []
+player_2_history_tokens = []
+free_spaces = []
 
-ai_history_tokens = []
-human_history_tokens = []
+
+def initialize_free_spaces():
+    global free_spaces
+    for row in range(0, 10):
+        for column in range(1, 13):
+            free_spaces.append(tuple((row, column)))
+
+
+def generate_possible_all_possible_list(board_game, row, column):
+    valid_moves = []
+    for r in range(-1, 2):
+        for c in range(-1, 2):
+            if is_move_possible(board_game, row + r, column + c, row, column):
+                valid_moves.append(tuple((row + r, column + c)))
+    return valid_moves
+
+
+def is_strikethrough_in_quadrant(board_game, row_of_center, column_of_center, is_max_playing):
+    return (board_game[row_of_center, column_of_center - 1] == PLAYER_1_TOKEN
+            and board_game[row_of_center, column_of_center + 1] == PLAYER_1_TOKEN) if not is_max_playing \
+        else (board_game[row_of_center, column_of_center - 1] == PLAYER_2_TOKEN
+              and board_game[row_of_center, column_of_center + 1] == PLAYER_2_TOKEN)
+
+
+def scoring_token_counter_for_quadrant(board_game, row_of_center, column_of_center):
+    token_of_max = 0
+    token_of_min = 0
+
+    if board_game[row_of_center - 1, column_of_center - 1] != ' ':
+        if board_game[row_of_center - 1, column_of_center - 1] == PLAYER_1_TOKEN:
+            token_of_max += 1
+        else:
+            token_of_min += 1
+    if board_game[row_of_center - 1, column_of_center + 1] != ' ':
+        if board_game[row_of_center - 1, column_of_center + 1] == PLAYER_1_TOKEN:
+            token_of_max += 1
+        else:
+            token_of_min += 1
+
+    if board_game[row_of_center, column_of_center] != ' ':
+        if board_game[row_of_center, column_of_center] == PLAYER_1_TOKEN:
+            token_of_max += 1
+        else:
+            token_of_min += 1
+
+    if board_game[row_of_center + 1, column_of_center - 1] != ' ':
+        if board_game[row_of_center + 1, column_of_center - 1] == PLAYER_1_TOKEN:
+            token_of_max += 1
+        else:
+            token_of_min += 1
+
+    if board_game[row_of_center + 1, column_of_center + 1] != ' ':
+        if board_game[row_of_center + 1, column_of_center + 1] == PLAYER_1_TOKEN:
+            token_of_max += 1
+        else:
+            token_of_min += 1
+
+    return token_of_max, token_of_min
+
+
+def score_of_quadrant(board_game, row_of_center, column_of_center, is_max_playing):
+    token_of_max, token_of_min = scoring_token_counter_for_quadrant(board_game, row_of_center, column_of_center)
+    value = 0
+
+    if is_strikethrough_in_quadrant(board_game, row_of_center, column_of_center, is_max_playing):
+        value += 0
+    elif token_of_max == 5:
+        value += 100000
+    elif token_of_min == 5:
+        value -= 100000
+    elif token_of_max == 4:
+        value += 10000
+    elif token_of_min == 4:
+        value -= 10000
+    elif token_of_max == 3:
+        value += 1000
+    elif token_of_min == 3:
+        value -= 1000
+    elif token_of_max == 2:
+        value += 100
+    elif token_of_min == 2:
+        value -= 100
+    elif token_of_max == 1:
+        value += 10
+    elif token_of_min == 1:
+        value -= 10
+
+    return value
+
+
+def score_of_position(board_game, row, column, is_max_playing):
+    value = 0
+
+    # Score of Quad 1
+    if row - 2 >= 0 and column + 2 <= 12:
+        value += score_of_quadrant(board_game, row - 1, column + 1, is_max_playing)
+
+    # Score of Quad 2
+    if row - 2 >= 0 and column - 2 >= 1:
+        value += score_of_quadrant(board_game, row - 1, column - 1, is_max_playing)
+
+    # Score of Quad 3
+    if row + 2 <= 9 and column - 2 >= 1:
+        value += score_of_quadrant(board_game, row + 1, column - 1, is_max_playing)
+
+    # Score of Quad 4
+    if row + 2 <= 9 and column + 2 <= 12:
+        value += score_of_quadrant(board_game, row + 1, column + 1, is_max_playing)
+
+    # Score of Quad 5
+    if row - 1 >= 0 and row + 1 <= 9 and column - 1 >= 1 and column + 1 <= 12:
+        value += score_of_quadrant(board_game, row, column, is_max_playing)
+
+    return value
 
 
 """
-    USE IS_MOVE/PLACEMENT_POSSIBLE to check which position are valid
+    USE IS_MOVE/PLACEMENT_POSSIBLE to check which position are valid to take (used inside minmax)
 """
 
 
-def is_node_a_leaf():
-    # TODO: Check if it's a leaf for the minmax tree (there's a winner, or move ran out, or both ran out of token)
-    return
+def is_node_a_leaf(board_game, board_row, board_column):
+    return is_player_winner(board_game, board_row, board_column, PLAYER_1_TOKEN, PLAYER_2_TOKEN) \
+           or is_player_winner(board_game, board_row, board_column, PLAYER_2_TOKEN, PLAYER_1_TOKEN) \
+           or (total_moves == 0 and player_1_tokens == 0 and player_2_tokens == 0)
 
 
-def is_strikethrough_in_quadrant():
-    # TODO: check if there is a strikethrough (of the opposing token) in the quadrant
-    return
+def minmax(board_game, row, column, is_max_playing, alpha, beta, depth, valid_placement):
+    if depth == 0 or is_node_a_leaf(board_game, row, column):
+        return row, column, score_of_position(board_game, row, column, is_max_playing)
 
-
-def scoring_token_counter_for_quadrant():
-    # TODO: Counter the number of token in the scoring position in quadrant
-    return
-
-
-def score_of_quadrant():
-    # TODO: Score for this quadrant
-    """
-    Value <- 0
-    for all winning positions P in quadrant
-        if P contains opposing strike
-            v+= 0
-        elif P contains 5 'X'
-            V+=100000
-        elif P contains 5 'O'
-            V-=100000
-        elif P contains 4 'X'
-            V+=10000
-        elif P contains 4 'O'
-            V-=10000
-        elif P contains 3 'X'
-            V+=1000
-        elif P contains 3 'O'
-            V-=1000
-        elif P contains 2 'X'
-            V+=100
-        elif P contains 2 'O'
-            V-=100
-        elif P contains 1 'X'
-            V+=10
-        elif P contains 1 'O'
-            V-=10
-    if Q
-    """
-    return
-
-
-def score_of_position():
-    # TODO: count the score for 5 quadrants
-    return
-
-
-def node_for_placing():
-    # TODO: Represent the node for placing
-    return
-
-
-def node_for_moving():
-    # TODO: Represents the node for moving
-    return
-
-
-def minmax():
+    if is_max_playing and player_1_tokens != 0:
+        value = -math.inf
+        (best_row, best_column) = valid_placement[0]
+        for new_row, new_column in free_spaces:
+            board_copy = board_game.copy()
+            placing_token(board_copy, PLAYER_1_TOKEN, new_row, new_column)
+            new_valid_placement = valid_placement.copy()
+            new_valid_placement.remove(tuple((new_row, new_column)))
+            score = minmax(board_copy, new_row, new_column, False, alpha, beta, depth - 1, new_valid_placement)[2]
+            if score > value:
+                value = score
+                best_row = new_row
+                best_column = new_column
+            alpha = max(value, alpha)
+            if alpha >= beta:
+                break
+        return best_row, best_column, value
+    elif is_max_playing and total_moves != 0:
+        value = math.inf
+        return row, column, value
+    elif not is_max_playing and player_2_tokens != 0:
+        value = math.inf
+        (best_row, best_column) = valid_placement[0]
+        for new_row, new_column in free_spaces:
+            board_copy = board_game.copy()
+            placing_token(board_copy, PLAYER_2_TOKEN, new_row, new_column)
+            new_valid_placement = valid_placement.copy()
+            new_valid_placement.remove(tuple((new_row, new_column)))
+            score = minmax(board_copy, new_row, new_column, True, alpha, beta, depth - 1, new_valid_placement)[2]
+            if score < value:
+                value = score
+                best_row = new_row
+                best_column = new_column
+            alpha = max(value, alpha)
+            if alpha >= beta:
+                break
+        return best_row, best_column, value
+    elif not is_max_playing and total_moves != 0:
+        value = math.inf
+        return row, column, value
+    else:
+        return minmax(board_game, row, column, not is_max_playing, alpha, beta, depth, valid_placement)
     # TODO: MinMax Algorithm which returns the row, column and Value
     # Recursive function and base case is if depth = 0 or is_node_a_leaf
-    return
+    # Should return a tuple of row, column, value
 
 
 def turn_of_ai():
     # TODO: Same as players turn, but optimize moves
     return
+
+
 # ==========================================HUMAN============================================
 
 
@@ -360,6 +475,17 @@ def turn_of_player(board_game, player_token, opposing_player_token):
                 player_1_tokens -= 1
             else:
                 player_2_tokens -= 1
+
+        global player_1_history_tokens
+        global free_spaces
+        if old_row != -1 and old_column != -1:
+            player_1_history_tokens.remove(tuple((old_row, old_column)))
+            player_1_history_tokens.append(tuple((row, column)))
+            free_spaces.append(tuple((old_row, old_column)))
+            free_spaces.remove(tuple((row, column)))
+        else:
+            player_1_history_tokens.append(tuple((row, column)))
+            free_spaces.remove(tuple((row, column)))
     else:
         while board_game[row, column] != player_token:
             position = input('Choose one of your tokens to move: ')
@@ -380,13 +506,27 @@ def turn_of_player(board_game, player_token, opposing_player_token):
             column = true_column_position(position[0].lower())
         total_moves -= 1
 
+        global player_2_history_tokens
+        global free_spaces
+        if old_row != -1 and old_column != -1:
+            player_2_history_tokens.remove(tuple((old_row, old_column)))
+            player_2_history_tokens.append(tuple((row, column)))
+            free_spaces.append(tuple((old_row, old_column)))
+            free_spaces.remove(tuple((row, column)))
+        else:
+            player_2_history_tokens.append(tuple((row, column)))
+            free_spaces.remove(tuple((row, column)))
+
     placing_token(board_game, player_token, row, column)
 
     winner = winner_evaluation(board_game, row, column, old_row, old_column, is_player_1_turn)
 
     return winner
+
+
 # ==========================================GAME============================================
 
+initialize_free_spaces()
 
 while player_1_tokens != 0 or player_2_tokens != 0 or total_moves != 0:
     is_player_1_turn = True
