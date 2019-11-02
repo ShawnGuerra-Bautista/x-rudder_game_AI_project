@@ -1,10 +1,10 @@
 import numpy as np
-
+# ==========================================GAME VARIABLE============================================
 # Variables
 player_1_tokens = 15  # Denoted by an X
-player_1_token = 'X'
+PLAYER_1_TOKEN = 'X'
 player_2_tokens = 15  # Denoted by an O
-player_2_token = 'O'
+PLAYER_2_TOKEN = 'O'
 is_player_1_turn = True
 total_moves = 30
 winner = None
@@ -24,6 +24,7 @@ board_body = [['10', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']
 
 # Prints in array format
 board = np.array(board_body)
+# ==========================================HELPER============================================
 
 
 def placing_token(board_game, board_token, board_row, board_column):
@@ -221,6 +222,90 @@ def winner_evaluation(board_game, board_row, board_column, board_old_row, board_
         evaluated_winner = 'Player 2' if is_turn_of_player_one else 'Player 1'
 
     return evaluated_winner
+# ===========================================AI=============================================
+
+
+ai_history_tokens = []
+human_history_tokens = []
+
+
+"""
+    USE IS_MOVE/PLACEMENT_POSSIBLE to check which position are valid
+"""
+
+
+def is_node_a_leaf():
+    # TODO: Check if it's a leaf for the minmax tree (there's a winner, or move ran out, or both ran out of token)
+    return
+
+
+def is_strikethrough_in_quadrant():
+    # TODO: check if there is a strikethrough (of the opposing token) in the quadrant
+    return
+
+
+def scoring_token_counter_for_quadrant():
+    # TODO: Counter the number of token in the scoring position in quadrant
+    return
+
+
+def score_of_quadrant():
+    # TODO: Score for this quadrant
+    """
+    Value <- 0
+    for all winning positions P in quadrant
+        if P contains opposing strike
+            v+= 0
+        elif P contains 5 'X'
+            V+=100000
+        elif P contains 5 'O'
+            V-=100000
+        elif P contains 4 'X'
+            V+=10000
+        elif P contains 4 'O'
+            V-=10000
+        elif P contains 3 'X'
+            V+=1000
+        elif P contains 3 'O'
+            V-=1000
+        elif P contains 2 'X'
+            V+=100
+        elif P contains 2 'O'
+            V-=100
+        elif P contains 1 'X'
+            V+=10
+        elif P contains 1 'O'
+            V-=10
+    if Q
+    """
+    return
+
+
+def score_of_position():
+    # TODO: count the score for 5 quadrants
+    return
+
+
+def node_for_placing():
+    # TODO: Represent the node for placing
+    return
+
+
+def node_for_moving():
+    # TODO: Represents the node for moving
+    return
+
+
+def minmax():
+    # TODO: MinMax Algorithm which returns the row, column and Value
+    # Recursive function and base case is if depth = 0 or is_node_a_leaf
+    return
+
+
+def turn_of_ai():
+    # TODO: Same as players turn, but optimize moves
+    return
+# ==========================================HUMAN============================================
 
 
 def turn_of_player(board_game, player_token, opposing_player_token):
@@ -300,17 +385,15 @@ def turn_of_player(board_game, player_token, opposing_player_token):
     winner = winner_evaluation(board_game, row, column, old_row, old_column, is_player_1_turn)
 
     return winner
-
-
 # ==========================================GAME============================================
-# Emulates a do-while loop
+
 
 while player_1_tokens != 0 or player_2_tokens != 0 or total_moves != 0:
     is_player_1_turn = True
-    if turn_of_player(board, player_1_token, player_2_token) is not None:
+    if turn_of_player(board, PLAYER_1_TOKEN, PLAYER_2_TOKEN) is not None:
         break
     is_player_1_turn = False
-    if turn_of_player(board, player_2_token, player_1_token) is not None:
+    if turn_of_player(board, PLAYER_2_TOKEN, PLAYER_1_TOKEN) is not None:
         break
 
 if winner is not None:
