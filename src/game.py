@@ -422,143 +422,115 @@ def is_node_a_leaf(board_game, board_row, board_column, max_player_tokens, min_p
            or (total_player_moves == 0 and max_player_tokens == 0 and min_player_tokens == 0)
 
 
-# Minmax algorithm for moving; same logic as below's algorithm for placing
-def minmax_for_moving(board_game, row, column, max_player_tokens, min_player_tokens, total_player_moves,
-                      is_max_playing, alpha, beta, depth,
-                      valid_max_player_tokens, valid_min_player_tokens):
-    if depth == 0 or is_node_a_leaf(board_game, row, column, max_player_tokens, min_player_tokens, total_player_moves):
-        if is_player_winner(board_game, row, column, PLAYER_1_TOKEN, PLAYER_2_TOKEN):
-            return None, None, None, None, 1000000
-        elif is_player_winner(board_game, row, column, PLAYER_2_TOKEN, PLAYER_1_TOKEN):
-            return None, None, None, None, -1000000
+def minmax(board_game, board_row, board_column, max_player_tokens, min_player_tokens, total_player_moves,
+           is_max_playing, alpha, beta, depth, valid_max_player_tokens, valid_min_player_tokens, valid_placement):
+    if depth == 0 or is_node_a_leaf(board_game, board_row, board_column, max_player_tokens, min_player_tokens, total_player_moves):
+        if is_player_winner(board_game, board_row, board_column, PLAYER_1_TOKEN, PLAYER_2_TOKEN):
+            return None, None, 1000000
+        elif is_player_winner(board_game, board_row, board_column, PLAYER_2_TOKEN, PLAYER_1_TOKEN):
+            return None, None, -1000000
         else:
-            return None, None, None, None, score_of_position(board_game, row, column, not is_max_playing)
+            return None, None, score_of_position(board_game, board_row, board_column, not is_max_playing)
 
-    (best_row, best_column, old_row, old_column) = None, None, None, None
+    # row and column that the AI will choose
+    (best_row, best_column, old_row, old_column, value) = None, None, None, None, None
 
     if is_max_playing:
-        value = -math.inf
-        for player_tokens_position in valid_max_player_tokens:
-            board_copy = board_game.copy()
-            remove_token(board_copy, player_tokens_position[0], player_tokens_position[1])
-            valid_max_player_moves = generate_all_possible_moves_list(board_copy,
-                                                                      player_tokens_position[0],
-                                                                      player_tokens_position[1])
-            for player_move_position in valid_max_player_moves:
-                placing_token(board_copy, PLAYER_1_TOKEN, player_move_position[0], player_move_position[1])
-                new_valid_max_player_tokens = valid_max_player_tokens.copy()
-                new_valid_max_player_tokens.remove(tuple((player_tokens_position[0], player_tokens_position[1])))
-                new_valid_max_player_tokens.append(tuple((player_move_position[0], player_move_position[1])))
-                score = minmax_for_moving(board_copy, player_move_position[0], player_move_position[1],
-                                          max_player_tokens, min_player_tokens, total_player_moves - 1,
-                                          False, alpha, beta, depth - 1,
-                                          new_valid_max_player_tokens, valid_min_player_tokens)[4]
+        if max_player_tokens != 0:
+            value = -math.inf
+            for space_tuple in valid_placement:
+                board_copy = board_game.copy()
+                placing_token(board_copy, PLAYER_1_TOKEN, space_tuple[0], space_tuple[1])
+                new_valid_placement = valid_placement.copy()
+                new_valid_placement.remove(tuple((space_tuple[0], space_tuple[1])))
+                score = minmax(board_copy, space_tuple[0], space_tuple[1], max_player_tokens - 1,
+                               min_player_tokens, total_player_moves, False, alpha, beta, depth - 1,
+                               valid_max_player_tokens, valid_min_player_tokens, new_valid_placement)[4]
                 if score > value:
                     value = score
-                    old_row = player_tokens_position[0]
-                    old_column = player_tokens_position[1]
-                    best_row = player_move_position[0]
-                    best_column = player_move_position[1]
+                    best_row = space_tuple[0]
+                    best_column = space_tuple[1]
                 alpha = max(value, alpha)
                 if alpha >= beta:
                     break
+        if total_player_moves != 0:
+            for player_tokens_position in valid_max_player_tokens:
+                board_copy = board_game.copy()
+                remove_token(board_copy, player_tokens_position[0], player_tokens_position[1])
+                valid_max_player_moves = generate_all_possible_moves_list(board_copy,
+                                                                          player_tokens_position[0],
+                                                                          player_tokens_position[1])
+                for player_move_position in valid_max_player_moves:
+                    placing_token(board_copy, PLAYER_1_TOKEN, player_move_position[0], player_move_position[1])
+                    new_valid_max_player_tokens = valid_max_player_tokens.copy()
+                    new_valid_max_player_tokens.remove(tuple((player_tokens_position[0], player_tokens_position[1])))
+                    new_valid_max_player_tokens.append(tuple((player_move_position[0], player_move_position[1])))
+                    score = minmax(board_copy, player_move_position[0], player_move_position[1],
+                                   max_player_tokens, min_player_tokens, total_player_moves - 1,
+                                   False, alpha, beta, depth - 1, new_valid_max_player_tokens,
+                                   valid_min_player_tokens, valid_placement)[4]
+                    if score > value:
+                        value = score
+                        old_row = player_tokens_position[0]
+                        old_column = player_tokens_position[1]
+                        best_row = player_move_position[0]
+                        best_column = player_move_position[1]
+                    alpha = max(value, alpha)
+                    if alpha >= beta:
+                        break
+        if total_player_moves == 0 and max_player_tokens == 0:
+            return minmax(board_game, board_row, board_column, max_player_tokens, min_player_tokens, total_player_moves,
+                          False, alpha, beta, depth, valid_max_player_tokens, valid_min_player_tokens, valid_placement)
         return best_row, best_column, old_row, old_column, value
     else:
-        value = math.inf
-        for player_tokens_position in valid_min_player_tokens:
-            board_copy = board_game.copy()
-            remove_token(board_copy, player_tokens_position[0], player_tokens_position[1])
-            valid_min_player_moves = generate_all_possible_moves_list(board_copy,
-                                                                      player_tokens_position[0],
-                                                                      player_tokens_position[1])
-            for player_move_position in valid_min_player_moves:
-                placing_token(board_copy, PLAYER_2_TOKEN, player_move_position[0], player_move_position[1])
-                new_valid_min_player_tokens = valid_min_player_tokens.copy()
-                new_valid_min_player_tokens.remove(tuple((player_tokens_position[0], player_tokens_position[1])))
-                new_valid_min_player_tokens.append(tuple((player_move_position[0], player_move_position[1])))
-                score = minmax_for_moving(board_copy, player_move_position[0], player_move_position[1],
-                                          max_player_tokens, min_player_tokens, total_player_moves - 1,
-                                          True, alpha, beta, depth - 1,
-                                          valid_max_player_tokens, new_valid_min_player_tokens)[4]
+        if min_player_tokens != 0:
+            value = math.inf
+            for space_tuple in valid_placement:
+                board_copy = board_game.copy()
+                placing_token(board_copy, PLAYER_2_TOKEN, space_tuple[0], space_tuple[1])
+                new_valid_placement = valid_placement.copy()
+                new_valid_placement.remove(tuple((space_tuple[0], space_tuple[1])))
+                score = minmax(board_copy, space_tuple[0], space_tuple[1], max_player_tokens,min_player_tokens - 1,
+                               total_player_moves, True, alpha, beta, depth - 1, max_player_tokens,
+                               min_player_tokens, new_valid_placement)[4]
                 if score < value:
                     value = score
-                    old_row = player_tokens_position[0]
-                    old_column = player_tokens_position[1]
-                    best_row = player_move_position[0]
-                    best_column = player_move_position[1]
+                    best_row = space_tuple[0]
+                    best_column = space_tuple[1]
                 beta = min(value, beta)
                 if alpha >= beta:
                     break
+        if total_player_moves != 0:
+            for player_tokens_position in valid_min_player_tokens:
+                board_copy = board_game.copy()
+                remove_token(board_copy, player_tokens_position[0], player_tokens_position[1])
+                valid_min_player_moves = generate_all_possible_moves_list(board_copy,
+                                                                          player_tokens_position[0],
+                                                                          player_tokens_position[1])
+                for player_move_position in valid_min_player_moves:
+                    placing_token(board_copy, PLAYER_2_TOKEN, player_move_position[0], player_move_position[1])
+                    new_valid_min_player_tokens = valid_min_player_tokens.copy()
+                    new_valid_min_player_tokens.remove(
+                        tuple((player_tokens_position[0], player_tokens_position[1])))
+                    new_valid_min_player_tokens.append(tuple((player_move_position[0], player_move_position[1])))
+                    score = minmax(board_copy, player_move_position[0], player_move_position[1], max_player_tokens,
+                                   min_player_tokens, total_player_moves - 1, True, alpha, beta, depth - 1,
+                                   valid_max_player_tokens, new_valid_min_player_tokens, valid_placement)[4]
+                    if score < value:
+                        value = score
+                        old_row = player_tokens_position[0]
+                        old_column = player_tokens_position[1]
+                        best_row = player_move_position[0]
+                        best_column = player_move_position[1]
+                    beta = min(value, beta)
+                    if alpha >= beta:
+                        break
+        if total_player_moves == 0 and min_player_tokens == 0:
+            return minmax(board_game, board_row, board_column, max_player_tokens, min_player_tokens,
+                          total_player_moves,
+                          False, alpha, beta, depth, valid_max_player_tokens, valid_min_player_tokens,
+                          valid_placement)
         return best_row, best_column, old_row, old_column, value
-
-
-# Minmax algorithm for placing tokens
-def minmax_for_placing(board_game, row, column, max_player_tokens, min_player_tokens, total_player_moves,
-                       is_max_playing, alpha, beta, depth, valid_placement):
-    if depth == 0 or is_node_a_leaf(board_game, row, column, max_player_tokens, min_player_tokens, total_player_moves):
-        # If depth is zero, or the game is going to end, then it's a leaf node
-        # Reason it doesn't pass the position is that we don't want the position of the leaf node
-        # We want the position of the child of root that leads to the leaf node
-        # Also, added 2 if statements for faster computation
-        if is_player_winner(board_game, row, column, PLAYER_1_TOKEN, PLAYER_2_TOKEN):
-            return None, None, 1000000
-        elif is_player_winner(board_game, row, column, PLAYER_2_TOKEN, PLAYER_1_TOKEN):
-            return None, None, -1000000
-        else:
-            return None, None, score_of_position(board_game, row, column, not is_max_playing)
-
-    # row and column that the AI will choose
-    (best_row, best_column) = None, None
-
-    # When Max/player_1 is playing
-    if is_max_playing:
-        value = -math.inf
-        for space_tuple in valid_placement:
-            board_copy = board_game.copy()
-            placing_token(board_copy, PLAYER_1_TOKEN, space_tuple[0], space_tuple[1])
-            new_valid_placement = valid_placement.copy()
-            new_valid_placement.remove(tuple((space_tuple[0], space_tuple[1])))
-            score = minmax_for_placing(board_copy, space_tuple[0], space_tuple[1], max_player_tokens - 1,
-                                       min_player_tokens, total_player_moves,
-                                       False, alpha, beta, depth - 1, new_valid_placement)[2]
-            if score > value:
-                value = score
-                best_row = space_tuple[0]
-                best_column = space_tuple[1]
-            alpha = max(value, alpha)
-            if alpha >= beta:
-                break
-        return best_row, best_column, value
-    # When Min/Player_2 is playing
-    else:
-        value = math.inf
-        for space_tuple in valid_placement:
-            board_copy = board_game.copy()
-            placing_token(board_copy, PLAYER_2_TOKEN, space_tuple[0], space_tuple[1])
-            new_valid_placement = valid_placement.copy()
-            new_valid_placement.remove(tuple((space_tuple[0], space_tuple[1])))
-            score = minmax_for_placing(board_copy, space_tuple[0], space_tuple[1], max_player_tokens,
-                                       min_player_tokens - 1, total_player_moves,
-                                       True, alpha, beta, depth - 1, new_valid_placement)[2]
-            if score < value:
-                value = score
-                best_row = space_tuple[0]
-                best_column = space_tuple[1]
-            beta = min(value, beta)
-            if alpha >= beta:
-                break
-        return best_row, best_column, value
-
-
-def minmax(board_game, board_row, board_column, max_player_tokens, min_player_tokens, total_player_moves,
-           is_max_playing, alpha, beta, depth, valid_max_player_tokens, valid_min_player_tokens, valid_placement):
-    if is_player_winner(board_game, board_row, board_column, PLAYER_1_TOKEN, PLAYER_2_TOKEN):
-        return None, None, 1000000
-    elif is_player_winner(board_game, board_row, board_column, PLAYER_2_TOKEN, PLAYER_1_TOKEN):
-        return None, None, -1000000
-    else:
-        return None, None, score_of_position(board_game, board_row, board_column, not is_max_playing)
-    return best_row, best_column, old_row, old_column, value
 
 
 def turn_of_ai(board_game, player_token):
