@@ -7,11 +7,16 @@ player_1_tokens = 15  # Denoted by an X
 PLAYER_1_TOKEN = 'X'  # Represents Max Player
 player_2_tokens = 15  # Denoted by an O
 PLAYER_2_TOKEN = 'O'  # Represents Min Player
-
-is_player_1_turn = True
 total_moves = 30
-winner = None
 is_ai_max = True
+is_player_1_turn = True
+winner = None
+
+# For optimization
+player_1_history_tokens = []
+player_2_history_tokens = []
+free_spaces = []
+
 
 # The board's row number are upside down in this program so use mod 10
 board_body = [['T', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
@@ -218,9 +223,11 @@ def winner_evaluation(board_game, board_row, board_column, board_old_row, board_
 
     evaluated_winner = None
 
+    # For when token has been placed
     if is_player_winner(board_game, board_row, board_column, player_token, opposing_player_token):
         evaluated_winner = 'Player 1' if is_turn_of_player_one else 'Player 2'
 
+    # For if token has moved
     if ((board_old_row - 1 >= 0 and board_game[board_old_row - 1, board_old_column] == opposing_player_token and
          is_player_winner(board_game, board_old_row - 1, board_old_column, opposing_player_token, player_token)) or
             (board_old_row + 1 <= 9 and board_game[board_old_row + 1, board_old_column] == opposing_player_token and
@@ -231,12 +238,6 @@ def winner_evaluation(board_game, board_row, board_column, board_old_row, board_
 
 
 # ===========================================AI=============================================
-
-# For optimization, but will think about it later
-player_1_history_tokens = []
-player_2_history_tokens = []
-free_spaces = []
-
 
 # Initialize all free spaces on the board (for optimization)
 def initialize_free_spaces():
@@ -547,6 +548,17 @@ def minmax_for_placing(board_game, row, column, max_player_tokens, min_player_to
             if alpha >= beta:
                 break
         return best_row, best_column, value
+
+
+def minmax(board_game, board_row, board_column, max_player_tokens, min_player_tokens, total_player_moves,
+           is_max_playing, alpha, beta, depth, valid_max_player_tokens, valid_min_player_tokens, valid_placement):
+    if is_player_winner(board_game, board_row, board_column, PLAYER_1_TOKEN, PLAYER_2_TOKEN):
+        return None, None, 1000000
+    elif is_player_winner(board_game, board_row, board_column, PLAYER_2_TOKEN, PLAYER_1_TOKEN):
+        return None, None, -1000000
+    else:
+        return None, None, score_of_position(board_game, board_row, board_column, not is_max_playing)
+    return best_row, best_column, old_row, old_column, value
 
 
 def turn_of_ai(board_game, player_token):
