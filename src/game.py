@@ -346,25 +346,25 @@ def score_of_quadrant(board_game, row_of_center, column_of_center, is_max_playin
     if is_strikethrough_in_quadrant(board_game, row_of_center, column_of_center, is_max_playing):
         value += 0
     elif scoring_token_of_max == 5:
-        value += 100000
+        value += 1000000
     elif scoring_token_of_min == 5:
-        value -= 100000
+        value -= 1000000
     elif scoring_token_of_max == 4:
-        value += 10000
+        value += 100000
     elif scoring_token_of_min == 4:
-        value -= 10000
+        value -= 100000
     elif scoring_token_of_max == 3:
-        value += 1000
+        value += 10000
     elif scoring_token_of_min == 3:
-        value -= 1000
+        value -= 10000
     elif scoring_token_of_max == 2:
-        value += 100
+        value += 1000
     elif scoring_token_of_min == 2:
-        value -= 100
+        value -= 1000
     elif scoring_token_of_max == 1:
-        value += 10
+        value += 100
     elif scoring_token_of_min == 1:
-        value -= 10
+        value -= 100
 
     if non_scoring_token_max == 4:
         value += 1000
@@ -427,9 +427,9 @@ def minmax_for_moving(board_game, row, column, max_player_tokens, min_player_tok
                       valid_max_player_tokens, valid_min_player_tokens):
     if depth == 0 or is_node_a_leaf(board_game, row, column, max_player_tokens, min_player_tokens, total_player_moves):
         if is_player_winner(board_game, row, column, PLAYER_1_TOKEN, PLAYER_2_TOKEN):
-            return None, None, None, None, 100000
+            return None, None, None, None, 1000000
         elif is_player_winner(board_game, row, column, PLAYER_2_TOKEN, PLAYER_1_TOKEN):
-            return None, None, None, None, -100000
+            return None, None, None, None, -1000000
         else:
             return None, None, None, None, score_of_position(board_game, row, column, not is_max_playing)
 
@@ -500,9 +500,9 @@ def minmax_for_placing(board_game, row, column, max_player_tokens, min_player_to
         # We want the position of the child of root that leads to the leaf node
         # Also, added 2 if statements for faster computation
         if is_player_winner(board_game, row, column, PLAYER_1_TOKEN, PLAYER_2_TOKEN):
-            return None, None, 100000
+            return None, None, 1000000
         elif is_player_winner(board_game, row, column, PLAYER_2_TOKEN, PLAYER_1_TOKEN):
-            return None, None, -100000
+            return None, None, -1000000
         else:
             return None, None, score_of_position(board_game, row, column, not is_max_playing)
 
