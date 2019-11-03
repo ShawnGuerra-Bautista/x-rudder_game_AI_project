@@ -528,7 +528,7 @@ def minmax(board_game, board_row, board_column, max_player_tokens, min_player_to
         if total_player_moves == 0 and min_player_tokens == 0:
             return minmax(board_game, board_row, board_column, max_player_tokens, min_player_tokens,
                           total_player_moves,
-                          False, alpha, beta, depth, valid_max_player_tokens, valid_min_player_tokens,
+                          True, alpha, beta, depth, valid_max_player_tokens, valid_min_player_tokens,
                           valid_placement)
         return best_row, best_column, old_row, old_column, value
 
