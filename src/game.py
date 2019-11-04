@@ -10,6 +10,7 @@ PLAYER_2_TOKEN = 'O'  # Represents Min Player
 total_moves = 30
 is_ai_max = False
 is_player_1_turn = True
+is_player_2_human = True
 winner = None
 
 # For optimization
@@ -19,7 +20,7 @@ free_spaces = []
 
 
 # The board's row number are upside down in this program so use mod 10
-board_body = [['T', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+board_body = [['10', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
               ['9', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
               ['8', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
               ['7', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
@@ -371,10 +372,15 @@ def is_node_a_leaf(board_game, board_row, board_column, max_player_tokens, min_p
            or (total_player_moves == 0 and max_player_tokens == 0 and min_player_tokens == 0)
 
 
+# MinMax algorithm for both placing and moving
 def minmax(board_game, board_row, board_column, max_player_tokens, min_player_tokens, total_player_moves,
            is_max_playing, alpha, beta, depth, valid_max_player_tokens, valid_min_player_tokens, valid_placement):
+    # If depth is 0, or there is a winner, then it's a leaf node
     if depth == 0 or is_node_a_leaf(board_game, board_row, board_column,
                                     max_player_tokens, min_player_tokens, total_player_moves):
+        # For evaluating score of node, added 2 first if statements for faster computation
+        # Also, doesn't pass the first 4 return values because we don't need them as minmax only gets/chooses
+        # (cont.) the first node from the root that leads to the leaf node
         if is_player_winner(board_game, board_row, board_column, PLAYER_1_TOKEN, PLAYER_2_TOKEN):
             return None, None, None, None, 10000000
         elif is_player_winner(board_game, board_row, board_column, PLAYER_2_TOKEN, PLAYER_1_TOKEN):
@@ -385,8 +391,11 @@ def minmax(board_game, board_row, board_column, max_player_tokens, min_player_to
     # row and column that the AI will choose
     (best_row, best_column, old_row, old_column) = None, None, None, None
 
+    # For faster computation for moving/placing, the list of valid placement and player moves are passed as a list
+    # When max is playing
     if is_max_playing:
         value = -math.inf
+        # Represents nodes that are for placing tokens
         if max_player_tokens != 0:
             for free_position in valid_placement:
                 board_copy = board_game.copy()
@@ -403,6 +412,7 @@ def minmax(board_game, board_row, board_column, max_player_tokens, min_player_to
                 alpha = max(value, alpha)
                 if alpha >= beta:
                     break
+        # Represents nodes that are for moving
         if total_player_moves != 0:
             for player_tokens_position in valid_max_player_tokens:
                 valid_max_player_moves = generate_all_possible_moves_list(board_game, player_tokens_position[0],
@@ -430,10 +440,13 @@ def minmax(board_game, board_row, board_column, max_player_tokens, min_player_to
                     alpha = max(value, alpha)
                     if alpha >= beta:
                         break
+        # If the player has no token left, then skip the turn and let the other player playing
         if total_player_moves == 0 and max_player_tokens == 0:
             return minmax(board_game, board_row, board_column, max_player_tokens, min_player_tokens, total_player_moves,
                           False, alpha, beta, depth, valid_max_player_tokens, valid_min_player_tokens, valid_placement)
         return best_row, best_column, old_row, old_column, value
+    # When min is playing
+    # Same logic as the code above
     else:
         value = math.inf
         if min_player_tokens != 0:
@@ -486,6 +499,7 @@ def minmax(board_game, board_row, board_column, max_player_tokens, min_player_to
         return best_row, best_column, old_row, old_column, value
 
 
+# The AI when playing the game
 def turn_of_ai(board_game, player_token):
     global winner
     global free_spaces
@@ -502,6 +516,7 @@ def turn_of_ai(board_game, player_token):
     print('========MOVES REMAINING========')
     print('============= ' + str(total_moves) + ' ==============')
     print('===============================')
+    print()
 
     row, column, old_row, old_column, value = minmax(board_game, -1, -1, player_1_tokens, player_2_tokens, total_moves,
                                                      is_ai_max, -math.inf, math.inf, 3, player_1_history_tokens,
@@ -646,6 +661,9 @@ def turn_of_player(board_game, player_token, opposing_player_token):
 
     winner = winner_evaluation(board_game, row, column, old_row, old_column, is_player_1_turn)
 
+    print()
+    print(board_game)
+
     return winner
 
 
@@ -654,7 +672,16 @@ def turn_of_player(board_game, player_token, opposing_player_token):
 initialize_free_spaces()
 
 while player_1_tokens != 0 or player_2_tokens != 0 or total_moves != 0:
-    if not is_ai_max:
+    if is_player_2_human:
+        is_player_1_turn = True
+        if (total_moves == 0 and player_1_tokens == 0) \
+                or turn_of_player(board, PLAYER_1_TOKEN, PLAYER_2_TOKEN) is not None:
+            break
+        is_player_1_turn = False
+        if (total_moves == 0 and player_2_tokens == 0) \
+                or turn_of_player(board, PLAYER_2_TOKEN, PLAYER_1_TOKEN) is not None:
+            break
+    elif not is_ai_max:
         is_player_1_turn = True
         if (total_moves == 0 and player_1_tokens == 0) \
                 or turn_of_player(board, PLAYER_1_TOKEN, PLAYER_2_TOKEN) is not None:
@@ -672,7 +699,6 @@ while player_1_tokens != 0 or player_2_tokens != 0 or total_moves != 0:
         if (total_moves == 0 and player_2_tokens == 0) \
                 or turn_of_player(board, PLAYER_2_TOKEN, PLAYER_1_TOKEN) is not None:
             break
-
 if winner is not None:
     print(winner + ' is the Winner!!!')
 else:
