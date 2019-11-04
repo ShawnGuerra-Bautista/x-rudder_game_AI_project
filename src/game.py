@@ -268,37 +268,6 @@ def is_strikethrough_in_quadrant(board_game, row_of_center, column_of_center, is
               and board_game[row_of_center, column_of_center + 1] == PLAYER_2_TOKEN)
 
 
-# Calculates the number of non scoring tokens in the quadrant of each player
-def non_scoring_token_in_quadrant(board_game, row_of_center, column_of_center):
-    token_of_max = 0
-    token_of_min = 0
-
-    if board_game[row_of_center - 1, column_of_center] != ' ':
-        if board_game[row_of_center - 1, column_of_center] == PLAYER_1_TOKEN:
-            token_of_max += 1
-        else:
-            token_of_min += 1
-    if board_game[row_of_center, column_of_center - 1] != ' ':
-        if board_game[row_of_center - 1, column_of_center + 1] == PLAYER_1_TOKEN:
-            token_of_max += 1
-        else:
-            token_of_min += 1
-
-    if board_game[row_of_center, column_of_center - 1] != ' ':
-        if board_game[row_of_center, column_of_center + 1] == PLAYER_1_TOKEN:
-            token_of_max += 1
-        else:
-            token_of_min += 1
-
-    if board_game[row_of_center + 1, column_of_center] != ' ':
-        if board_game[row_of_center + 1, column_of_center] == PLAYER_1_TOKEN:
-            token_of_max += 1
-        else:
-            token_of_min += 1
-
-    return token_of_max, token_of_min
-
-
 # Count the number of tokens of each player in a "quadrant's" winning position
 def scoring_token_counter_for_quadrant(board_game, row_of_center, column_of_center):
     token_of_max = 0
@@ -341,8 +310,6 @@ def scoring_token_counter_for_quadrant(board_game, row_of_center, column_of_cent
 def score_of_quadrant(board_game, row_of_center, column_of_center, is_max_playing):
     scoring_token_of_max, scoring_token_of_min = scoring_token_counter_for_quadrant(board_game,
                                                                                     row_of_center, column_of_center)
-    # non_scoring_token_max, non_scoring_token_min = non_scoring_token_in_quadrant(board_game,
-    #                                                                              row_of_center, column_of_center)
     value = 0
 
     if is_strikethrough_in_quadrant(board_game, row_of_center, column_of_center, is_max_playing):
@@ -367,24 +334,6 @@ def score_of_quadrant(board_game, row_of_center, column_of_center, is_max_playin
         value += 100
     elif scoring_token_of_min == 1:
         value -= 100
-
-    # if non_scoring_token_max == 4:
-    #     value += 1000
-    # elif non_scoring_token_min == 4:
-    #     value -= 1000
-    # elif non_scoring_token_max == 3:
-    #     value += 100
-    # elif non_scoring_token_min == 3:
-    #     value -= 100
-    # elif non_scoring_token_max == 2:
-    #     value += 10
-    # elif non_scoring_token_min == 2:
-    #     value -= 10
-    # elif non_scoring_token_max == 1:
-    #     value += 1
-    # elif non_scoring_token_min == 1:
-    #     value -= 1
-
     return value
 
 
@@ -427,13 +376,10 @@ def minmax(board_game, board_row, board_column, max_player_tokens, min_player_to
     if depth == 0 or is_node_a_leaf(board_game, board_row, board_column,
                                     max_player_tokens, min_player_tokens, total_player_moves):
         if is_player_winner(board_game, board_row, board_column, PLAYER_1_TOKEN, PLAYER_2_TOKEN):
-            # print(board_game)
-            return None, None, None, None, 1000000
+            return None, None, None, None, 10000000
         elif is_player_winner(board_game, board_row, board_column, PLAYER_2_TOKEN, PLAYER_1_TOKEN):
-            # print(board_game)
-            return None, None, None, None, -1000000
+            return None, None, None, None, -10000000
         else:
-            # print(board_game)
             return None, None, None, None, score_of_position(board_game, board_row, board_column, not is_max_playing)
 
     # row and column that the AI will choose
