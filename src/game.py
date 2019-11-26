@@ -8,9 +8,9 @@ PLAYER_1_TOKEN = 'X'  # Represents Max Player
 player_2_tokens = 15  # Denoted by an O
 PLAYER_2_TOKEN = 'O'  # Represents Min Player
 total_moves = 30
-is_ai_max = False
+is_ai_max = True
 is_player_1_turn = True
-is_player_2_human = True
+is_player_2_human = False
 winner = None
 
 # For optimization
@@ -51,6 +51,39 @@ def remove_token(board_game, board_row, board_column):
 
 def true_row_position(board_row):
     return 10 - board_row
+
+
+def displayed_row_position(board_row):
+    return 10 - board_row
+
+
+def displayed_column_position(board_column):
+    displayed_column = 0
+    if board_column == 1:
+        displayed_column = 'A'
+    elif board_column == 2:
+        displayed_column = 'B'
+    elif board_column == 3:
+        displayed_column = 'C'
+    elif board_column == 4:
+        displayed_column = 'D'
+    elif board_column == 5:
+        displayed_column = 'E'
+    elif board_column == 6:
+        displayed_column = 'F'
+    elif board_column == 7:
+        displayed_column = 'G'
+    elif board_column == 8:
+        displayed_column = 'H'
+    elif board_column == 9:
+        displayed_column = 'I'
+    elif board_column == 10:
+        displayed_column = 'J'
+    elif board_column == 11:
+        displayed_column = 'K'
+    elif board_column == 12:
+        displayed_column = 'L'
+    return displayed_column
 
 
 def true_column_position(board_column):
@@ -519,7 +552,7 @@ def turn_of_ai(board_game, player_token):
     print()
 
     row, column, old_row, old_column, value = minmax(board_game, -1, -1, player_1_tokens, player_2_tokens, total_moves,
-                                                     is_ai_max, -math.inf, math.inf, 3, player_1_history_tokens,
+                                                     is_ai_max, -math.inf, math.inf, 2, player_1_history_tokens,
                                                      player_2_history_tokens, free_spaces)
 
     # Reason placing tokens takes priority over moving is that moving
@@ -546,8 +579,16 @@ def turn_of_ai(board_game, player_token):
             player_2_history_tokens.remove(tuple((old_row, old_column)))
         free_spaces.append(tuple((old_row, old_column)))
         free_spaces.remove(tuple((row, column)))
-    print()
+
     print(board_game)
+
+    print()
+    if old_row == -1 and old_column == -1:
+        print(str(displayed_column_position(column)) + str(displayed_row_position(row)))
+    else:
+        print(str(displayed_column_position(old_column)) + str(displayed_row_position(old_row)) + " " +
+              str(displayed_column_position(column)) + str(displayed_row_position(row)))
+    print()
 
     winner = winner_evaluation(board_game, row, column, old_row, old_column, is_player_1_turn)
 
@@ -555,7 +596,6 @@ def turn_of_ai(board_game, player_token):
 
 
 # ==========================================HUMAN============================================
-
 
 def turn_of_player(board_game, player_token, opposing_player_token):
     global total_moves
